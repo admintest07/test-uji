@@ -35,5 +35,12 @@ service cloud.firestore {
     match /logs/{logId} {
       allow read, write: if true;
     }
+
+    // KOLEKSI PUSH_SUBSCRIPTIONS:
+    // Menyimpan endpoint langganan Web Push perangkat pengguna (HP)
+    // agar notifikasi tetap muncul di pusat notifikasi saat aplikasi ditutup.
+    match /push_subscriptions/{subId} {
+      allow read, write: if true;
+    }
   }
 }

@@ -486,7 +486,7 @@
                 <div id="notif-status-icon" style="width: 12px; height: 12px; border-radius: 50%; background: #94a3b8; flex-shrink: 0;"></div>
                 <div>
                     <div id="notif-status-title" style="font-size: 0.85rem; font-weight: 700; color: #1e293b;">Status Izin: Memeriksa...</div>
-                    <div id="notif-status-sub" style="font-size: 0.72rem; color: #64748b;">Notifikasi bergulir di layar HP Anda</div>
+                    <div id="notif-status-sub" style="font-size: 0.72rem; color: #64748b;">Notifikasi bergulir di status bar & pusat notifikasi HP</div>
                 </div>
             </div>
             <button id="btn-request-notif" onclick="window.requestNotificationPermission()" class="btn btn-primary" style="padding: 0.4rem 0.85rem; font-size: 0.78rem; flex-shrink: 0;">
@@ -498,9 +498,11 @@
         <div style="margin-bottom: 1.25rem;">
             <button onclick="window.sendTestNotification()" class="btn w-full" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 0.75rem; border-radius: 0.75rem; font-size: 0.85rem; font-weight: 700; box-shadow: 0 4px 10px rgba(37,99,235,0.2);">
                 <i class="material-icons-round" style="font-size: 1.1rem; vertical-align: middle; margin-right: 4px;">ring_volume</i>
-                Tes Notifikasi Bergulir di HP Sekarang
+                Tes Notifikasi ke Pusat Notifikasi HP
             </button>
-            <p class="text-muted" style="font-size: 0.72rem; text-align: center; margin-top: 0.4rem;">Klik tombol ini untuk mencoba suara notifikasi dan banner bergulir di HP.</p>
+            <p class="text-muted" style="font-size: 0.72rem; text-align: center; margin-top: 0.4rem; line-height: 1.4;">
+                <strong>Tips Uji:</strong> Tekan tombol di atas, lalu segera minimalkan aplikasi atau kunci layar HP Anda. Notifikasi bergulir akan masuk ke pusat notifikasi HP seperti pesan WA.
+            </p>
         </div>
 
         <!-- Preferensi Suara & Getar -->
@@ -519,12 +521,12 @@
         <!-- Panduan PWA di HP -->
         <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 0.85rem; padding: 0.85rem; font-size: 0.75rem; color: #166534; line-height: 1.45;">
             <div style="font-weight: 800; display: flex; align-items: center; gap: 4px; margin-bottom: 4px; color: #15803d;">
-                <i class="material-icons-round" style="font-size: 1rem;">tips_and_updates</i> Tips Notifikasi Bergulir di HP:
+                <i class="material-icons-round" style="font-size: 1rem;">phonelink_ring</i> Notifikasi Saat Aplikasi Tidak Dibuka:
             </div>
-            <ul style="margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 3px;">
-                <li><strong>Android (Chrome/PWA):</strong> Klik <em>"Aktifkan"</em> dan pilih <em>"Izinkan"</em> saat browser meminta izin notifikasi.</li>
-                <li><strong>iPhone (Safari):</strong> Pada iOS 16.4+, tambahkan web ini ke Layar Utama (Layar Depan) terlebih dahulu via tombol Share, lalu buka dan aktifkan notifikasi.</li>
-                <li>Setiap ada data supervisi baru yang diinput oleh siapa pun, HP Anda akan otomatis berdering dan menampilkan notifikasi pop-up.</li>
+            <ul style="margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 4px;">
+                <li><strong>Web Push Service:</strong> Aplikasi sudah dilengkapi Service Worker & Web Push Protocol sehingga notifikasi tetap diterima di pusat notifikasi HP meskipun aplikasi sedang ditutup.</li>
+                <li><strong>Android (Chrome/PWA):</strong> Pastikan izin <em>"Notifikasi"</em> disetel <strong>Izinkan</strong> dan hemat daya baterai di HP tidak membatasi aplikasi.</li>
+                <li><strong>iPhone (iOS 16.4+):</strong> Wajib menginstal PWA ke Layar Utama (Layar Depan) terlebih dahulu via Safari agar sistem iOS mengizinkan notifikasi latar belakang.</li>
             </ul>
         </div>
     </div>
@@ -1299,6 +1301,107 @@
         }
     };
 
+    const VAPID_PUBLIC_KEY = "BE3jDtCtYk3kIhcMInsKUpYvn9EOt2MCLvGr9NIOne1upDEJdkgeiOGzcKezVYi22t0T0gkuIc_LSWuUx6DSqdU";
+
+    window.urlBase64ToUint8Array = function(base64String) {
+        const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+        const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    };
+
+    window.subscribeToWebPush = async function() {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+            return null;
+        }
+        try {
+            const registration = await navigator.serviceWorker.ready;
+            let subscription = await registration.pushManager.getSubscription();
+            if (!subscription) {
+                const convertedKey = window.urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+                subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: convertedKey
+                });
+            }
+            if (subscription) {
+                const subData = JSON.parse(JSON.stringify(subscription));
+                const subId = btoa(subscription.endpoint).slice(-32).replace(/[^a-zA-Z0-9]/g, '_');
+                
+                // 1. Kirim ke backend server endpoint
+                try {
+                    await fetch('/api/subscribe', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            subscription: subData,
+                            user: currentUser ? (currentUser.namaSupervisor || currentUser.username) : 'PWA Mobile'
+                        })
+                    });
+                } catch(e) {}
+                
+                // 2. Simpan di Firestore agar tetap tersimpan untuk multi-device
+                if (!IS_PREVIEW && db) {
+                    try {
+                        await setDoc(doc(db, "push_subscriptions", subId), {
+                            subscription: subData,
+                            endpoint: subscription.endpoint,
+                            userId: currentUser?.id || 'anonymous',
+                            userName: currentUser?.namaSupervisor || 'User',
+                            updatedAt: Date.now()
+                        });
+                    } catch(e) {
+                        console.warn("Firestore push subscription save:", e);
+                    }
+                }
+            }
+            return subscription;
+        } catch(err) {
+            console.warn("Web Push subscribe error:", err);
+            return null;
+        }
+    };
+
+    window.broadcastSupervisiPush = async function(supervisiData) {
+        if (!supervisiData) return;
+        const title = `Laporan Supervisi: ${supervisiData.satuanPendidikan}`;
+        const body = `${supervisiData.namaSupervisor} melaporkan ${supervisiData.detailPertemuan?.length || 0} temuan supervisi (${supervisiData.bulan || 'Bulan ini'}).`;
+        
+        let customSubscriptions = [];
+        if (!IS_PREVIEW && db) {
+            try {
+                const snap = await getDocs(collection(db, "push_subscriptions"));
+                snap.forEach(d => {
+                    const sub = d.data().subscription;
+                    if (sub && sub.endpoint) customSubscriptions.push(sub);
+                });
+            } catch(e) {}
+        }
+
+        try {
+            await fetch('/api/send-push', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title,
+                    body,
+                    data: {
+                        id: supervisiData.id,
+                        satuan: supervisiData.satuanPendidikan,
+                        url: '/'
+                    },
+                    customSubscriptions
+                })
+            });
+        } catch(e) {
+            console.warn("Broadcast push error:", e);
+        }
+    };
+
     window.vibrateMobile = function() {
         if (!notifVibrateEnabled) return;
         if ('vibrate' in navigator) {
@@ -1318,6 +1421,7 @@
             window.updateNotifStatusUI();
             if (permission === 'granted') {
                 showToast("Izin notifikasi HP berhasil aktif!", "success");
+                await window.subscribeToWebPush();
                 window.sendTestNotification();
                 const promptEl = document.getElementById('dash-notif-prompt');
                 if (promptEl) promptEl.classList.add('hidden');
@@ -1350,6 +1454,7 @@
 
         const perm = Notification.permission;
         if (perm === 'granted') {
+            window.subscribeToWebPush();
             if (badge) { badge.className = 'notif-bell-badge active'; badge.style.background = '#10b981'; }
             if (statusIcon) statusIcon.style.background = '#10b981';
             if (statusTitle) statusTitle.innerHTML = `<span style="color:#059669;">Notifikasi Aktif ✅</span>`;
@@ -1471,16 +1576,17 @@
         window.showRollingBanner(notifTitle, notifBody, data);
     };
 
-    window.sendTestNotification = function() {
+    window.sendTestNotification = async function() {
         const dummy = {
             id: "test-" + Date.now(),
             satuanPendidikan: currentUser?.satuanPendidikan || "SMA Islam Sabilillah",
             namaSupervisor: currentUser?.namaSupervisor || "Supervisor LPIS",
-            bulan: "September",
-            detailPertemuan: [ { temuan: "Uji coba temuan kebersihan dan kerapian sarpras" } ]
+            bulan: "Supervisi",
+            detailPertemuan: [ { temuan: "Uji coba notifikasi latar belakang saat aplikasi ditutup" } ]
         };
         window.sendRealtimeSupervisiNotification(dummy, true);
-        showToast("Notifikasi bergulir berhasil dikirim!", "success");
+        await window.broadcastSupervisiPush(dummy);
+        showToast("Notifikasi dikirim ke pusat notifikasi HP!", "success");
     };
 
     window.openNotifModal = function() {
@@ -2048,6 +2154,7 @@
                 window.logActivity("SUPERVISI", "Edit Laporan Supervisi", `Memperbarui laporan supervisi ${data.satuanPendidikan} - ${data.bulan} ${data.tahunAjaran}`);
             } else {
                 window.logActivity("SUPERVISI", "Tambah Laporan Supervisi", `Menambahkan laporan supervisi ${data.satuanPendidikan} - ${data.bulan} ${data.tahunAjaran}`);
+                window.broadcastSupervisiPush(data);
             }
             window.toggleInputSection(false); 
             
