@@ -92,6 +92,56 @@
         .toast { background: var(--surface-solid); padding: 0.9rem 1.1rem; border-radius: 0.85rem; box-shadow: var(--shadow-lg); border-left: 3px solid var(--primary); display: flex; align-items: center; gap: 0.75rem; min-width: 250px; animation: slideIn 0.3s ease-out forwards; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
+        /* Rolling Notification Banner (iOS/Android Push Style) */
+        #realtime-notif-banner {
+            position: fixed;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-160%);
+            width: calc(100% - 24px);
+            max-width: 460px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid #bfdbfe;
+            border-left: 5px solid #2563eb;
+            border-radius: 1.15rem;
+            box-shadow: 0 16px 36px -4px rgba(15, 23, 42, 0.2), 0 6px 16px rgba(37, 99, 235, 0.12);
+            z-index: 1000005;
+            padding: 0.95rem 1.1rem;
+            transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+        #realtime-notif-banner.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .notif-bell-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #10b981;
+            border: 2px solid white;
+        }
+        .notif-bell-badge.active {
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.4);
+            animation: pulse-ring 2s infinite;
+        }
+        .notif-bell-badge.inactive {
+            background: #f59e0b;
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.4);
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.9; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.9; }
+        }
+
         #custom-modal-overlay, #custom-edit-modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(8px); z-index: 999999; display: flex; align-items: center; justify-content: center; opacity: 1; transition: opacity 0.3s ease; }
         #custom-modal-overlay.hidden, #custom-edit-modal-overlay.hidden { opacity: 0; pointer-events: none; }
         .modal-box { 
@@ -384,6 +434,102 @@
     </div>
 </div>
 
+<!-- Rolling Notification Banner (Muncul bergulir dari atas layar HP seperti WA/Gmail) -->
+<div id="realtime-notif-banner">
+    <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+        <div style="width: 44px; height: 44px; border-radius: 50%; background: #eff6ff; border: 1px solid #bfdbfe; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 2px;">
+            <img src="https://i.ibb.co/HTKMs1Q7/LPI-3-10-New.png" alt="Logo LPI" style="width: 32px; height: 32px; object-fit: contain;">
+        </div>
+        <div style="flex: 1; min-width: 0;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 2px;">
+                <span style="font-size: 0.7rem; font-weight: 800; color: #2563eb; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 5px;">
+                    <span style="width: 7px; height: 7px; border-radius: 50%; background: #2563eb; display: inline-block; animation: pulse-ring 1.5s infinite;"></span>
+                    SUPERVISI LPI • SEKARANG
+                </span>
+                <button onclick="window.dismissRollingBanner()" style="background: transparent; border: none; color: #94a3b8; cursor: pointer; padding: 2px; border-radius: 4px; display: flex; align-items: center;" title="Tutup">
+                    <i class="material-icons-round" style="font-size: 1.15rem;">close</i>
+                </button>
+            </div>
+            <div id="notif-banner-title" style="font-size: 0.92rem; font-weight: 800; color: #0f172a; line-height: 1.25; margin-bottom: 2px;">Laporan Supervisi Masuk!</div>
+            <div id="notif-banner-body" style="font-size: 0.8rem; color: #475569; line-height: 1.35; margin-bottom: 0.65rem;">Memuat rincian laporan...</div>
+            <div style="display: flex; gap: 0.5rem;">
+                <button id="btn-notif-banner-action" class="btn btn-primary" style="padding: 0.38rem 0.9rem; font-size: 0.78rem; border-radius: 0.5rem; font-weight: 700;">
+                    <i class="material-icons-round" style="font-size: 0.95rem;">visibility</i> Buka Laporan
+                </button>
+                <button onclick="window.dismissRollingBanner()" class="btn btn-outline" style="padding: 0.38rem 0.65rem; font-size: 0.78rem; border-radius: 0.5rem; color: #64748b;">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Pengaturan Notifikasi Realtime HP -->
+<div id="modal-notif-overlay" class="hidden" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(8px); z-index: 999999; display: flex; align-items: center; justify-content: center; padding: 1rem;">
+    <div class="modal-box" style="max-width: 440px; padding: 1.75rem 1.5rem; text-align: left; width: 100%;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <div style="width: 38px; height: 38px; border-radius: 0.6rem; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                    <i class="material-icons-round" style="font-size: 1.35rem;">notifications_active</i>
+                </div>
+                <div>
+                    <h3 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 0;">Notifikasi Realtime HP</h3>
+                    <p class="text-muted text-xs" style="margin: 0;">Pemberitahuan bergulir seperti Gmail & WA</p>
+                </div>
+            </div>
+            <button onclick="document.getElementById('modal-notif-overlay').classList.add('hidden')" style="border:none; background:transparent; cursor:pointer; color:#64748b; padding: 4px;"><i class="material-icons-round" style="font-size: 1.3rem;">close</i></button>
+        </div>
+
+        <!-- Status Notifikasi Saat Ini -->
+        <div id="notif-status-card" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.85rem; padding: 0.85rem 1rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.65rem;">
+                <div id="notif-status-icon" style="width: 12px; height: 12px; border-radius: 50%; background: #94a3b8; flex-shrink: 0;"></div>
+                <div>
+                    <div id="notif-status-title" style="font-size: 0.85rem; font-weight: 700; color: #1e293b;">Status Izin: Memeriksa...</div>
+                    <div id="notif-status-sub" style="font-size: 0.72rem; color: #64748b;">Notifikasi bergulir di layar HP Anda</div>
+                </div>
+            </div>
+            <button id="btn-request-notif" onclick="window.requestNotificationPermission()" class="btn btn-primary" style="padding: 0.4rem 0.85rem; font-size: 0.78rem; flex-shrink: 0;">
+                Aktifkan
+            </button>
+        </div>
+
+        <!-- Tombol Uji Notifikasi -->
+        <div style="margin-bottom: 1.25rem;">
+            <button onclick="window.sendTestNotification()" class="btn w-full" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 0.75rem; border-radius: 0.75rem; font-size: 0.85rem; font-weight: 700; box-shadow: 0 4px 10px rgba(37,99,235,0.2);">
+                <i class="material-icons-round" style="font-size: 1.1rem; vertical-align: middle; margin-right: 4px;">ring_volume</i>
+                Tes Notifikasi Bergulir di HP Sekarang
+            </button>
+            <p class="text-muted" style="font-size: 0.72rem; text-align: center; margin-top: 0.4rem;">Klik tombol ini untuk mencoba suara notifikasi dan banner bergulir di HP.</p>
+        </div>
+
+        <!-- Preferensi Suara & Getar -->
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0.85rem; padding: 0.75rem 1rem; margin-bottom: 1.25rem; display: flex; flex-direction: column; gap: 0.6rem;">
+            <label style="display: flex; align-items: center; justify-content: space-between; font-size: 0.82rem; font-weight: 600; color: #334155; cursor: pointer;">
+                <span style="display: flex; align-items: center; gap: 6px;"><i class="material-icons-round" style="font-size: 1rem; color: #2563eb;">volume_up</i> Bunyikan Nada Dering Notifikasi</span>
+                <input type="checkbox" id="pref-notif-sound" checked onchange="window.saveNotifPreferences()" style="width: 18px; height: 18px; accent-color: #2563eb; cursor: pointer;">
+            </label>
+            <div style="height: 1px; background: #f1f5f9;"></div>
+            <label style="display: flex; align-items: center; justify-content: space-between; font-size: 0.82rem; font-weight: 600; color: #334155; cursor: pointer;">
+                <span style="display: flex; align-items: center; gap: 6px;"><i class="material-icons-round" style="font-size: 1rem; color: #2563eb;">vibration</i> Getarkan HP saat Data Masuk</span>
+                <input type="checkbox" id="pref-notif-vibrate" checked onchange="window.saveNotifPreferences()" style="width: 18px; height: 18px; accent-color: #2563eb; cursor: pointer;">
+            </label>
+        </div>
+
+        <!-- Panduan PWA di HP -->
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 0.85rem; padding: 0.85rem; font-size: 0.75rem; color: #166534; line-height: 1.45;">
+            <div style="font-weight: 800; display: flex; align-items: center; gap: 4px; margin-bottom: 4px; color: #15803d;">
+                <i class="material-icons-round" style="font-size: 1rem;">tips_and_updates</i> Tips Notifikasi Bergulir di HP:
+            </div>
+            <ul style="margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 3px;">
+                <li><strong>Android (Chrome/PWA):</strong> Klik <em>"Aktifkan"</em> dan pilih <em>"Izinkan"</em> saat browser meminta izin notifikasi.</li>
+                <li><strong>iPhone (Safari):</strong> Pada iOS 16.4+, tambahkan web ini ke Layar Utama (Layar Depan) terlebih dahulu via tombol Share, lalu buka dan aktifkan notifikasi.</li>
+                <li>Setiap ada data supervisi baru yang diinput oleh siapa pun, HP Anda akan otomatis berdering dan menampilkan notifikasi pop-up.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
 <div id="app-container">
     
     <div id="login-view">
@@ -482,7 +628,10 @@
                                 <div class="user-greeting-school" id="dash-satuan-pendidikan-header">-</div>
                             </div>
                         </div>
-                        <button class="btn btn-icon flex-shrink-0" style="color: white; background: rgba(255,255,255,0.2); border-radius: 0.5rem; width: 38px; height: 38px;" title="Notifikasi"><i class="material-icons-round">notifications_active</i></button>
+                        <button id="btn-dash-notif" class="btn btn-icon flex-shrink-0" style="position: relative; color: white; background: rgba(255,255,255,0.2); border-radius: 0.5rem; width: 38px; height: 38px;" title="Pengaturan Notifikasi Realtime HP" onclick="window.openNotifModal()">
+                            <i class="material-icons-round">notifications_active</i>
+                            <span id="badge-notif-status" class="notif-bell-badge inactive"></span>
+                        </button>
                     </div>
                 </div>
 
@@ -498,6 +647,29 @@
                         <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.3;">Data dapat Anda perbarui secara real-time kapan saja.</p>
                     </div>
                     <button class="btn w-full" style="background: linear-gradient(135deg, var(--accent), #f43f5e); color: white; border-radius: 0.75rem; padding: 0.75rem 1rem; font-size: 0.9rem; font-weight: 700; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.25);" onclick="navigate('rekap'); toggleInputSection(true);">+ Input Laporan Baru</button>
+                </div>
+            </div>
+
+            <!-- Banner Prompt Izin Notifikasi Realtime HP -->
+            <div id="dash-notif-prompt" class="card hidden" style="margin-bottom: 1.25rem; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 1px solid #bfdbfe; padding: 0.85rem 1rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 240px;">
+                        <div style="background: #2563eb; color: white; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 6px -1px rgba(37,99,235,0.3);">
+                            <i class="material-icons-round" style="font-size: 1.3rem;">notifications_active</i>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.88rem; font-weight: 800; color: #1e3a8a;">Aktifkan Notifikasi Realtime di HP</div>
+                            <div style="font-size: 0.78rem; color: #1e40af;">Dapatkan notifikasi bergulir (seperti Gmail & WA) setiap ada data supervisi baru masuk.</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <button class="btn btn-primary" onclick="window.requestNotificationPermission()" style="padding: 0.45rem 0.95rem; font-size: 0.82rem; border-radius: 0.5rem;">
+                            Aktifkan Sekarang
+                        </button>
+                        <button class="btn btn-outline" onclick="window.dismissNotifPrompt()" style="padding: 0.45rem 0.65rem; font-size: 0.82rem; border-radius: 0.5rem; background: white; color: #64748b;">
+                            Nanti
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -988,7 +1160,7 @@
     window.setText = function(id, text) { const el = document.getElementById(id); if (el) { el.innerText = text; } else { console.warn("Missing element for setText:", id); } };
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, doc, deleteDoc, setDoc, getDoc, updateDoc, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, doc, deleteDoc, setDoc, getDoc, updateDoc, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     // MODE PREVIEW - Ganti ke 'false' jika sudah setting config & rules Firebase sungguhan!
     const IS_PREVIEW = false; 
@@ -1015,6 +1187,15 @@
     let logItemsPerPage = 10;
     let logCurrentPage = 1;
     let dashboardChartInstance = null;
+
+    // Realtime Notification State
+    let supervisiUnsubscribe = null;
+    let isFirstSupervisiSnapshot = true;
+    let bannerTimeout = null;
+    let notifSoundEnabled = localStorage.getItem('supervisi_notif_sound') !== 'false';
+    let notifVibrateEnabled = localStorage.getItem('supervisi_notif_vibrate') !== 'false';
+    let notifPromptDismissed = localStorage.getItem('supervisi_notif_prompt_dismissed') === 'true';
+    let lastNotifiedReportId = null;
 
     // Log Activity Function
     window.logActivity = async (kategori, tindakan, detail = '') => {
@@ -1071,6 +1252,327 @@
         modal.classList.remove('hidden');
         document.getElementById('btn-modal-cancel').onclick = () => modal.classList.add('hidden');
         document.getElementById('btn-modal-confirm').onclick = () => { modal.classList.add('hidden'); if(callback) callback(); };
+    };
+
+    // ==========================================
+    // NOTIFIKASI REALTIME & PWA NOTIFICATION API
+    // ==========================================
+
+    window.playNotificationChime = function() {
+        if (!notifSoundEnabled) return;
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
+            const ctx = new AudioCtx();
+            if (ctx.state === 'suspended') {
+                ctx.resume();
+            }
+            const now = ctx.currentTime;
+            
+            const osc1 = ctx.createOscillator();
+            const osc2 = ctx.createOscillator();
+            const gain = ctx.createGain();
+            
+            osc1.type = 'sine';
+            osc2.type = 'triangle';
+            
+            // Nada Dering Khas Harmonis: F5 (698.46 Hz) -> C6 (1046.50 Hz)
+            osc1.frequency.setValueAtTime(698.46, now);
+            osc1.frequency.setValueAtTime(1046.50, now + 0.12);
+            
+            osc2.frequency.setValueAtTime(1396.91, now + 0.12);
+            
+            gain.gain.setValueAtTime(0.01, now);
+            gain.gain.exponentialRampToValueAtTime(0.28, now + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+            
+            osc1.connect(gain);
+            osc2.connect(gain);
+            gain.connect(ctx.destination);
+            
+            osc1.start(now);
+            osc2.start(now + 0.12);
+            osc1.stop(now + 0.65);
+            osc2.stop(now + 0.65);
+        } catch(e) {
+            console.log("Audio chime error:", e);
+        }
+    };
+
+    window.vibrateMobile = function() {
+        if (!notifVibrateEnabled) return;
+        if ('vibrate' in navigator) {
+            try {
+                navigator.vibrate([200, 100, 200]);
+            } catch(e) {}
+        }
+    };
+
+    window.requestNotificationPermission = async function() {
+        if (!('Notification' in window)) {
+            showToast("Browser ini tidak mendukung Web Notification API", "error");
+            return 'unsupported';
+        }
+        try {
+            const permission = await Notification.requestPermission();
+            window.updateNotifStatusUI();
+            if (permission === 'granted') {
+                showToast("Izin notifikasi HP berhasil aktif!", "success");
+                window.sendTestNotification();
+                const promptEl = document.getElementById('dash-notif-prompt');
+                if (promptEl) promptEl.classList.add('hidden');
+            } else if (permission === 'denied') {
+                showToast("Notifikasi diblokir di setelan browser HP Anda", "error");
+            }
+            return permission;
+        } catch(e) {
+            console.warn("Notification permission error:", e);
+            return 'error';
+        }
+    };
+
+    window.updateNotifStatusUI = function() {
+        const badge = document.getElementById('badge-notif-status');
+        const statusIcon = document.getElementById('notif-status-icon');
+        const statusTitle = document.getElementById('notif-status-title');
+        const statusSub = document.getElementById('notif-status-sub');
+        const btnReq = document.getElementById('btn-request-notif');
+        const promptEl = document.getElementById('dash-notif-prompt');
+
+        if (!('Notification' in window)) {
+            if (badge) { badge.className = 'notif-bell-badge inactive'; badge.style.background = '#94a3b8'; }
+            if (statusIcon) statusIcon.style.background = '#94a3b8';
+            if (statusTitle) statusTitle.innerText = "Status: Tidak Didukung";
+            if (statusSub) statusSub.innerText = "Browser belum mendukung Web Notification";
+            if (btnReq) { btnReq.disabled = true; btnReq.innerText = "Tidak Didukung"; }
+            return;
+        }
+
+        const perm = Notification.permission;
+        if (perm === 'granted') {
+            if (badge) { badge.className = 'notif-bell-badge active'; badge.style.background = '#10b981'; }
+            if (statusIcon) statusIcon.style.background = '#10b981';
+            if (statusTitle) statusTitle.innerHTML = `<span style="color:#059669;">Notifikasi Aktif ✅</span>`;
+            if (statusSub) statusSub.innerText = "Notifikasi bergulir aktif di sistem HP Anda";
+            if (btnReq) { 
+                btnReq.className = 'btn btn-outline'; 
+                btnReq.innerText = 'Sudah Aktif';
+                btnReq.style.borderColor = '#bbf7d0';
+                btnReq.style.color = '#15803d';
+            }
+            if (promptEl) promptEl.classList.add('hidden');
+        } else if (perm === 'denied') {
+            if (badge) { badge.className = 'notif-bell-badge inactive'; badge.style.background = '#ef4444'; }
+            if (statusIcon) statusIcon.style.background = '#ef4444';
+            if (statusTitle) statusTitle.innerHTML = `<span style="color:#dc2626;">Izin Diblokir ❌</span>`;
+            if (statusSub) statusSub.innerText = "Ubah izin notifikasi di setelan situs browser HP";
+            if (btnReq) { 
+                btnReq.innerText = 'Buka Setelan'; 
+                btnReq.onclick = () => showToast("Buka Info Situs / Setelan Browser HP Anda untuk mengizinkan notifikasi", "info"); 
+            }
+            if (promptEl) promptEl.classList.add('hidden');
+        } else {
+            if (badge) { badge.className = 'notif-bell-badge inactive'; badge.style.background = '#f59e0b'; }
+            if (statusIcon) statusIcon.style.background = '#f59e0b';
+            if (statusTitle) statusTitle.innerHTML = `<span style="color:#d97706;">Belum Diizinkan ⚠️</span>`;
+            if (statusSub) statusSub.innerText = "Klik 'Aktifkan' agar notifikasi muncul bergulir di HP";
+            if (btnReq) { btnReq.className = 'btn btn-primary'; btnReq.innerText = 'Aktifkan'; btnReq.onclick = window.requestNotificationPermission; }
+            if (promptEl && !notifPromptDismissed) promptEl.classList.remove('hidden');
+        }
+
+        const chkSound = document.getElementById('pref-notif-sound');
+        if (chkSound) chkSound.checked = notifSoundEnabled;
+        const chkVibrate = document.getElementById('pref-notif-vibrate');
+        if (chkVibrate) chkVibrate.checked = notifVibrateEnabled;
+    };
+
+    window.showRollingBanner = function(title, body, data = {}) {
+        const banner = document.getElementById('realtime-notif-banner');
+        if (!banner) return;
+        
+        const titleEl = document.getElementById('notif-banner-title');
+        const bodyEl = document.getElementById('notif-banner-body');
+        if (titleEl) titleEl.innerText = title;
+        if (bodyEl) bodyEl.innerText = body;
+        
+        const actionBtn = document.getElementById('btn-notif-banner-action');
+        if (actionBtn) {
+            actionBtn.onclick = () => {
+                window.dismissRollingBanner();
+                window.navigate('rekap');
+                if (data && data.id) {
+                    setTimeout(() => {
+                        const idx = globalSupervisiData.findIndex(s => s.id === data.id);
+                        if (idx !== -1) window.lihatDetail(idx);
+                    }, 350);
+                }
+            };
+        }
+        
+        banner.classList.add('show');
+        
+        if (bannerTimeout) clearTimeout(bannerTimeout);
+        bannerTimeout = setTimeout(() => {
+            window.dismissRollingBanner();
+        }, 7000);
+    };
+
+    window.dismissRollingBanner = function() {
+        const banner = document.getElementById('realtime-notif-banner');
+        if (banner) banner.classList.remove('show');
+        if (bannerTimeout) clearTimeout(bannerTimeout);
+    };
+
+    window.sendRealtimeSupervisiNotification = function(data, isLiveEvent = false) {
+        if (!data) return;
+        
+        const satuan = data.satuanPendidikan || 'LPI Sabilillah Malang';
+        const spv = data.namaSupervisor || 'Supervisor';
+        const jmlTemuan = data.detailPertemuan ? data.detailPertemuan.length : 0;
+        
+        const notifTitle = `Laporan Supervisi Masuk: ${satuan}`;
+        const notifBody = `${spv} melaporkan ${jmlTemuan} temuan supervisi (${data.bulan || 'Bulan ini'}).`;
+        
+        // 1. Suara Dering Notifikasi
+        window.playNotificationChime();
+        
+        // 2. Getaran HP
+        window.vibrateMobile();
+        
+        // 3. Notifikasi Sistem HP (Android/iOS PWA Banner bergulir seperti WA/Gmail)
+        if ('Notification' in window && Notification.permission === 'granted') {
+            const iconUrl = 'https://i.ibb.co/HTKMs1Q7/LPI-3-10-New.png';
+            const notifOptions = {
+                body: notifBody,
+                icon: iconUrl,
+                badge: iconUrl,
+                vibrate: [250, 100, 250, 100, 250],
+                tag: 'supervisi-' + (data.id || Date.now()),
+                renotify: true,
+                data: {
+                    url: '/',
+                    id: data.id,
+                    satuan: satuan
+                }
+            };
+            
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then(reg => {
+                    reg.showNotification(notifTitle, notifOptions);
+                }).catch(() => {
+                    try { new Notification(notifTitle, notifOptions); } catch(e){}
+                });
+            } else {
+                try { new Notification(notifTitle, notifOptions); } catch(e){}
+            }
+        }
+        
+        // 4. Banner Bergulir di Dalam Aplikasi
+        window.showRollingBanner(notifTitle, notifBody, data);
+    };
+
+    window.sendTestNotification = function() {
+        const dummy = {
+            id: "test-" + Date.now(),
+            satuanPendidikan: currentUser?.satuanPendidikan || "SMA Islam Sabilillah",
+            namaSupervisor: currentUser?.namaSupervisor || "Supervisor LPIS",
+            bulan: "September",
+            detailPertemuan: [ { temuan: "Uji coba temuan kebersihan dan kerapian sarpras" } ]
+        };
+        window.sendRealtimeSupervisiNotification(dummy, true);
+        showToast("Notifikasi bergulir berhasil dikirim!", "success");
+    };
+
+    window.openNotifModal = function() {
+        const modal = document.getElementById('modal-notif-overlay');
+        if (modal) {
+            modal.classList.remove('hidden');
+            window.updateNotifStatusUI();
+        }
+    };
+
+    window.dismissNotifPrompt = function() {
+        const promptEl = document.getElementById('dash-notif-prompt');
+        if (promptEl) promptEl.classList.add('hidden');
+        notifPromptDismissed = true;
+        localStorage.setItem('supervisi_notif_prompt_dismissed', 'true');
+    };
+
+    window.saveNotifPreferences = function() {
+        const chkSound = document.getElementById('pref-notif-sound');
+        const chkVibrate = document.getElementById('pref-notif-vibrate');
+        if (chkSound) {
+            notifSoundEnabled = chkSound.checked;
+            localStorage.setItem('supervisi_notif_sound', notifSoundEnabled ? 'true' : 'false');
+        }
+        if (chkVibrate) {
+            notifVibrateEnabled = chkVibrate.checked;
+            localStorage.setItem('supervisi_notif_vibrate', notifVibrateEnabled ? 'true' : 'false');
+        }
+        showToast("Pengaturan notifikasi disimpan", "success");
+    };
+
+    window.initRealtimeSupervisiListener = function() {
+        if (IS_PREVIEW || !db) return;
+        if (supervisiUnsubscribe) {
+            try { supervisiUnsubscribe(); } catch(e){}
+        }
+        isFirstSupervisiSnapshot = true;
+        
+        try {
+            const qRef = query(collection(db, "supervisi"), orderBy("timestamp", "desc"), limit(100));
+            supervisiUnsubscribe = onSnapshot(qRef, (snapshot) => {
+                if (isFirstSupervisiSnapshot) {
+                    isFirstSupervisiSnapshot = false;
+                    // Pertama kali load: sinkronkan data ke globalSupervisiData
+                    snapshot.forEach(docSnap => {
+                        const docData = { id: docSnap.id, ...docSnap.data() };
+                        const idx = globalSupervisiData.findIndex(s => s.id === docData.id);
+                        if (idx === -1) {
+                            globalSupervisiData.push(docData);
+                        } else {
+                            globalSupervisiData[idx] = docData;
+                        }
+                    });
+                    globalSupervisiData.sort((a,b) => b.timestamp - a.timestamp);
+                    return;
+                }
+
+                snapshot.docChanges().forEach((change) => {
+                    const docData = { id: change.doc.id, ...change.doc.data() };
+                    if (change.type === "added") {
+                        const existingIdx = globalSupervisiData.findIndex(s => s.id === docData.id);
+                        if (existingIdx === -1) {
+                            globalSupervisiData.unshift(docData);
+                            globalSupervisiData.sort((a,b) => b.timestamp - a.timestamp);
+                        }
+                        
+                        // Notifikasi hanya dipicu jika data baru (maksimal 3 menit yang lalu) dan belum pernah dibunyikan
+                        const isRecent = docData.timestamp && (Date.now() - docData.timestamp < 180000);
+                        if (isRecent && docData.id !== lastNotifiedReportId) {
+                            lastNotifiedReportId = docData.id;
+                            window.sendRealtimeSupervisiNotification(docData, true);
+                        }
+                        
+                        window.applyFilterRekap();
+                        loadDashboardData();
+                    } else if (change.type === "modified") {
+                        const idx = globalSupervisiData.findIndex(s => s.id === docData.id);
+                        if (idx !== -1) globalSupervisiData[idx] = docData;
+                        window.applyFilterRekap();
+                        loadDashboardData();
+                    } else if (change.type === "removed") {
+                        globalSupervisiData = globalSupervisiData.filter(s => s.id !== docData.id);
+                        window.applyFilterRekap();
+                        loadDashboardData();
+                    }
+                });
+            }, (error) => {
+                console.warn("Realtime supervisi onSnapshot error:", error.message || "error");
+            });
+        } catch(err) {
+            console.warn("Gagal inisialisasi realtime Firestore listener:", err.message || "error");
+        }
     };
 
     // Initialization
@@ -1187,6 +1689,10 @@
         if (currentUser) {
             await window.logActivity("AUTENTIKASI", "Logout", `User ${currentUser.namaSupervisor || currentUser.id} keluar dari aplikasi`);
         }
+        if (supervisiUnsubscribe) {
+            try { supervisiUnsubscribe(); } catch(e){}
+            supervisiUnsubscribe = null;
+        }
         if(!IS_PREVIEW) await signOut(auth); 
         currentUser = null; localStorage.removeItem('supervisi_session'); 
         document.getElementById('login-view').classList.remove('hidden'); 
@@ -1239,6 +1745,8 @@
             await window.loadRekapitulasi();
             navigate('dashboard'); 
             loadDashboardData(); 
+            window.initRealtimeSupervisiListener();
+            window.updateNotifStatusUI();
         });
     }
 
@@ -1512,7 +2020,14 @@
         }
         try {
             if(IS_PREVIEW) { 
-                if(editModeId) { const idx = window.mockSupervisi.findIndex(s => s.id === editModeId); if(idx !== -1) window.mockSupervisi[idx] = { id: editModeId, ...data }; } else { data.id = "mock-" + Date.now(); window.mockSupervisi.push(data); } 
+                if(editModeId) { 
+                    const idx = window.mockSupervisi.findIndex(s => s.id === editModeId); 
+                    if(idx !== -1) window.mockSupervisi[idx] = { id: editModeId, ...data }; 
+                } else { 
+                    data.id = "mock-" + Date.now(); 
+                    window.mockSupervisi.push(data); 
+                    window.sendRealtimeSupervisiNotification(data, false);
+                } 
             } else { 
                 if (editModeId) { 
                     await updateDoc(doc(db, "supervisi", editModeId), data); 
@@ -1521,7 +2036,11 @@
                 } else { 
                     const docRef = await addDoc(collection(db, "supervisi"), data); 
                     data.id = docRef.id;
-                    globalSupervisiData.push(data);
+                    lastNotifiedReportId = data.id;
+                    const existingIdx = globalSupervisiData.findIndex(s => s.id === data.id);
+                    if (existingIdx === -1) {
+                        globalSupervisiData.push(data);
+                    }
                 } 
             }
             showToast(editModeId ? "Laporan Diperbarui!" : "Laporan Disimpan!", "success"); 
@@ -2701,11 +3220,29 @@
     
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js').catch(error => {
+            navigator.serviceWorker.register('/sw.js').then((registration) => {
+                window.updateNotifStatusUI();
+            }).catch(error => {
                 console.log('SW registration failed:', error.message || 'error');
             });
         });
+        navigator.serviceWorker.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'NOTIF_CLICKED') {
+                const data = event.data.data;
+                window.navigate('rekap');
+                if (data && data.id) {
+                    setTimeout(() => {
+                        const idx = globalSupervisiData.findIndex(s => s.id === data.id);
+                        if (idx !== -1) window.lihatDetail(idx);
+                    }, 350);
+                }
+            }
+        });
     }
+
+    window.addEventListener('load', () => {
+        setTimeout(window.updateNotifStatusUI, 600);
+    });
 </script>
 
 </body>

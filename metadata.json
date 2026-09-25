@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
+  "name": "Supervisi LPI Sabilillah Malang",
+  "description": "Aplikasi Jurnal Supervisi Kebersihan, Kerapian dan Perawatan Sarpras LPI Sabilillah Malang dengan notifikasi realtime",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
