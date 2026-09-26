@@ -3693,29 +3693,12 @@
     setInterval(updateHeaderDateTime, 1000);
     updateHeaderDateTime();
     
-    // Verifikasi ketersediaan manifest dan fallback otomatis jika static file gagal
-    fetch('/manifest.json')
-        .then(res => {
-            const ct = res.headers.get('content-type') || '';
-            if (!res.ok || (!ct.includes('json') && !ct.includes('manifest'))) {
-                console.warn('[PWA] Static manifest.json invalid/missing, switching to /api/manifest');
-                const link = document.getElementById('pwa-manifest');
-                if (link) link.href = '/api/manifest';
-            }
-        })
-        .catch(() => {
-            const link = document.getElementById('pwa-manifest');
-            if (link) link.href = '/api/manifest';
-        });
-
+    // Registrasi PWA Service Worker Resmi
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js')
-                .catch(error => {
-                    console.warn('[SW] /sw.js registration failed, trying /api/sw fallback:', error.message);
-                    return navigator.serviceWorker.register('/api/sw');
-                })
+            navigator.serviceWorker.register('/sw.js', { scope: '/' })
                 .then((registration) => {
+                    console.log('[SW] PWA Service Worker aktif:', registration.scope);
                     window.updateNotifStatusUI();
                     window.updatePWAInstallUI();
                 })
