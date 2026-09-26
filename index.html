@@ -573,12 +573,15 @@
             <button onclick="document.getElementById('modal-pwa-guide').classList.add('hidden')" style="border:none; background:transparent; cursor:pointer; color:#64748b; padding: 4px;"><i class="material-icons-round" style="font-size: 1.3rem;">close</i></button>
         </div>
 
-        <div style="display: flex; gap: 0.5rem; background: #f1f5f9; padding: 0.35rem; border-radius: 0.75rem; margin-bottom: 1.25rem;">
-            <button type="button" id="tab-guide-android" onclick="window.switchGuideTab('android')" class="btn" style="flex: 1; padding: 0.45rem; font-size: 0.8rem; font-weight: 700; border-radius: 0.5rem; background: white; color: #2563eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                Android (Chrome)
+        <div style="display: flex; gap: 0.35rem; background: #f1f5f9; padding: 0.3rem; border-radius: 0.75rem; margin-bottom: 1.25rem;">
+            <button type="button" id="tab-guide-android" onclick="window.switchGuideTab('android')" class="btn" style="flex: 1; padding: 0.45rem 0.25rem; font-size: 0.75rem; font-weight: 700; border-radius: 0.5rem; background: white; color: #2563eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                Android (Chrome/Brave)
             </button>
-            <button type="button" id="tab-guide-ios" onclick="window.switchGuideTab('ios')" class="btn" style="flex: 1; padding: 0.45rem; font-size: 0.8rem; font-weight: 700; border-radius: 0.5rem; background: transparent; color: #64748b;">
-                iPhone / iPad (Safari)
+            <button type="button" id="tab-guide-troubleshoot" onclick="window.switchGuideTab('troubleshoot')" class="btn" style="flex: 1; padding: 0.45rem 0.25rem; font-size: 0.75rem; font-weight: 700; border-radius: 0.5rem; background: transparent; color: #64748b;">
+                ⚠️ Solusi Jika Hanya Pintasan
+            </button>
+            <button type="button" id="tab-guide-ios" onclick="window.switchGuideTab('ios')" class="btn" style="flex: 1; padding: 0.45rem 0.25rem; font-size: 0.75rem; font-weight: 700; border-radius: 0.5rem; background: transparent; color: #64748b;">
+                iOS Safari
             </button>
         </div>
 
@@ -587,18 +590,53 @@
             <div style="margin-bottom: 1rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 0.75rem; padding: 0.85rem;">
                 <div style="font-weight: 800; color: #1e40af; margin-bottom: 0.25rem;">Kenapa Harus "Instal Aplikasi", Bukan "Pintasan"?</div>
                 <div style="font-size: 0.75rem; color: #1e3a8a;">
-                    Jika hanya berupa <em>"Pintasan"</em> web biasa, Android menganggapnya sebagai tab Chrome biasa sehingga notifikasi diblokir saat layar HP mati. Dengan <strong>"Instal Aplikasi"</strong>, sistem Android membuat paket aplikasi terdaftar resmi (WebAPK) dengan izin notifikasi di pusat notifikasi HP seperti WA.
+                    Jika hanya berupa <em>"Pintasan"</em> web biasa, Android menganggapnya sebagai tab browser biasa sehingga notifikasi diblokir saat layar HP mati. Dengan <strong>"Instal Aplikasi"</strong>, sistem Android membuat paket aplikasi terdaftar resmi (WebAPK) dengan izin notifikasi di pusat notifikasi HP seperti WA.
                 </div>
             </div>
             <ol style="padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.25rem;">
-                <li>Tekan tombol biru <strong>"⚡ Instal Aplikasi Sekarang"</strong> di bawah ini (jika muncul jendela konfirmasi Chrome, tekan <strong>"Instal"</strong>).</li>
-                <li>Jika tombol tidak merespons, ketuk menu <strong>titik tiga (⋮)</strong> di pojok kanan atas browser Google Chrome.</li>
-                <li>Cari dan pilih menu <strong>"Instal aplikasi"</strong> (atau <em>"Tambahkan ke Layar Utama"</em> berlogo download).</li>
-                <li>Tunggu beberapa detik sampai ikon aplikasi <strong>Supervisi LPI</strong> muncul di daftar semua aplikasi / layar HP Anda.</li>
-                <li>Buka aplikasi melalui ikon tersebut, login, dan ketuk <strong>"Izinkan"</strong> saat browser meminta izin notifikasi.</li>
+                <li>Cukup tekan tombol biru <strong>"⚡ Instal Aplikasi Sekarang"</strong> di bawah ini (jika muncul konfirmasi browser, tekan <strong>"Instal"</strong>).</li>
+                <li>Jika tombol belum memicu popup, buka menu browser Anda:
+                    <ul style="margin-top: 4px; padding-left: 1.1rem; list-style-type: circle;">
+                        <li><strong>Di Google Chrome:</strong> Ketuk menu titik tiga (⋮) di kanan atas &rarr; pilih <strong>"Instal aplikasi"</strong>.</li>
+                        <li><strong>Di Brave Browser:</strong> Ketuk menu titik tiga &rarr; pilih <strong>"Instal dan buat pintasan"</strong> &rarr; lalu pilih opsi <strong>"Instal aplikasi"</strong> (bukan buat pintasan).</li>
+                    </ul>
+                </li>
+                <li>Tunggu 5-10 detik hingga ikon aplikasi <strong>Supervisi LPI</strong> terpasang di layar utama HP Anda.</li>
+                <li>Buka aplikasi lewat ikon tersebut dan tekan <strong>"Izinkan"</strong> saat meminta izin notifikasi.</li>
             </ol>
             <button onclick="window.triggerPWAInstall()" class="btn btn-primary w-full" style="padding: 0.65rem; font-size: 0.85rem; font-weight: 700;">
                 ⚡ Mulai Instal Aplikasi Sekarang
+            </button>
+        </div>
+
+        <!-- Panduan Solusi Jika Hanya Pintasan -->
+        <div id="guide-content-troubleshoot" class="hidden" style="font-size: 0.82rem; color: #334155; line-height: 1.5;">
+            <div style="margin-bottom: 1rem; background: #fffbeb; border: 1px solid #fde68a; border-radius: 0.75rem; padding: 0.85rem;">
+                <div style="font-weight: 800; color: #92400e; margin-bottom: 0.25rem;">Kenapa di HP Anda Hanya Muncul "Buat Pintasan"?</div>
+                <div style="font-size: 0.75rem; color: #78350f;">
+                    Jika menu browser hanya menyediakan "Buat Pintasan" dan opsi "Instal Aplikasi" tidak muncul, periksa 3 hal berikut:
+                </div>
+            </div>
+            <ol style="padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.65rem; margin-bottom: 1.25rem;">
+                <li>
+                    <strong>Pastikan "Situs Desktop" TIDAK DICENTANG:</strong><br>
+                    Buka menu titik tiga (⋮) browser &rarr; pastikan opsi <em>"Situs Desktop" (Desktop site)</em> dalam keadaan <strong>mati/tidak dicentang</strong>. Jika dicentang, sistem mendeteksi HP Anda sebagai komputer PC dan menonaktifkan fitur instal aplikasi.
+                </li>
+                <li>
+                    <strong>Jangan Gunakan Tab Privat / Samaran (Incognito):</strong><br>
+                    Browser melarang instalasi aplikasi di tab privat. Buka web di tab biasa.
+                </li>
+                <li>
+                    <strong>Refresh / Bersihkan Cache Browser:</strong><br>
+                    Tarik layar ke bawah untuk memuat ulang (refresh) halaman agar browser mengunduh paket aplikasi (manifest) terbaru.
+                </li>
+                <li>
+                    <strong>Gunakan Google Chrome Standar:</strong><br>
+                    Jika browser Brave atau bawaan HP memblokir layanan WebAPK Android, salin URL web ini dan buka di <strong>Google Chrome</strong>, lalu tekan tombol Instal.
+                </li>
+            </ol>
+            <button onclick="window.triggerPWAInstall()" class="btn btn-primary w-full" style="padding: 0.65rem; font-size: 0.85rem; font-weight: 700;">
+                ⚡ Coba Instal Lagi Sekarang
             </button>
         </div>
 
@@ -679,7 +717,7 @@
             </form>
 
             <!-- Banner Instal PWA di Halaman Login -->
-            <div id="login-pwa-install-banner" class="hidden" style="margin-top: 1.25rem; padding: 0.85rem; border-radius: 0.85rem; background: #eff6ff; border: 1px solid #bfdbfe; text-align: center;">
+            <div id="login-pwa-install-banner" style="margin-top: 1.25rem; padding: 0.85rem; border-radius: 0.85rem; background: #eff6ff; border: 1px solid #bfdbfe; text-align: center;">
                 <div style="font-size: 0.82rem; font-weight: 700; color: #1e40af; margin-bottom: 0.3rem; display: flex; align-items: center; justify-content: center; gap: 5px;">
                     <i class="material-icons-round" style="font-size: 1.15rem; color: #2563eb;">install_mobile</i>
                     Instal Aplikasi di Layar HP
@@ -690,6 +728,9 @@
                 <button type="button" onclick="window.triggerPWAInstall()" class="btn btn-primary w-full" style="padding: 0.55rem; font-size: 0.82rem; border-radius: 0.65rem; font-weight: 700;">
                     ⚡ Instal Aplikasi Sekarang
                 </button>
+                <a href="javascript:void(0)" onclick="window.openPWAGuideModal('troubleshoot')" style="display: block; margin-top: 0.45rem; font-size: 0.7rem; color: #2563eb; text-decoration: underline;">
+                    Hanya muncul opsi "Pintasan"? Lihat solusi &raquo;
+                </a>
             </div>
         </div>
     </div>
@@ -1509,36 +1550,43 @@
 
     window.switchGuideTab = function(tab) {
         const tabAndroid = document.getElementById('tab-guide-android');
+        const tabTroubleshoot = document.getElementById('tab-guide-troubleshoot');
         const tabIos = document.getElementById('tab-guide-ios');
         const contentAndroid = document.getElementById('guide-content-android');
+        const contentTroubleshoot = document.getElementById('guide-content-troubleshoot');
         const contentIos = document.getElementById('guide-content-ios');
 
+        const resetBtn = (btn) => {
+            if (btn) {
+                btn.style.background = 'transparent';
+                btn.style.color = '#64748b';
+                btn.style.boxShadow = 'none';
+            }
+        };
+        const activeBtn = (btn) => {
+            if (btn) {
+                btn.style.background = 'white';
+                btn.style.color = '#2563eb';
+                btn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
+            }
+        };
+
+        resetBtn(tabAndroid);
+        resetBtn(tabTroubleshoot);
+        resetBtn(tabIos);
+        if (contentAndroid) contentAndroid.classList.add('hidden');
+        if (contentTroubleshoot) contentTroubleshoot.classList.add('hidden');
+        if (contentIos) contentIos.classList.add('hidden');
+
         if (tab === 'android') {
-            if (tabAndroid) {
-                tabAndroid.style.background = 'white';
-                tabAndroid.style.color = '#2563eb';
-                tabAndroid.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
-            }
-            if (tabIos) {
-                tabIos.style.background = 'transparent';
-                tabIos.style.color = '#64748b';
-                tabIos.style.boxShadow = 'none';
-            }
+            activeBtn(tabAndroid);
             if (contentAndroid) contentAndroid.classList.remove('hidden');
-            if (contentIos) contentIos.classList.add('hidden');
+        } else if (tab === 'troubleshoot') {
+            activeBtn(tabTroubleshoot);
+            if (contentTroubleshoot) contentTroubleshoot.classList.remove('hidden');
         } else {
-            if (tabIos) {
-                tabIos.style.background = 'white';
-                tabIos.style.color = '#2563eb';
-                tabIos.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
-            }
-            if (tabAndroid) {
-                tabAndroid.style.background = 'transparent';
-                tabAndroid.style.color = '#64748b';
-                tabAndroid.style.boxShadow = 'none';
-            }
+            activeBtn(tabIos);
             if (contentIos) contentIos.classList.remove('hidden');
-            if (contentAndroid) contentAndroid.classList.add('hidden');
         }
     };
 

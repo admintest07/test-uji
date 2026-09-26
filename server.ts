@@ -13,6 +13,19 @@ const isProd = process.env.NODE_ENV === 'production';
 
 app.use(express.json());
 
+// Set explicit headers for PWA Service Worker & Manifest
+app.use((req, res, next) => {
+  if (req.path === '/sw.js') {
+    res.setHeader('Service-Worker-Allowed', '/');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Content-Type', 'text/javascript; charset=utf-8');
+  } else if (req.path === '/manifest.json' || req.path === '/manifest.webmanifest') {
+    res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+  }
+  next();
+});
+
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || "BE3jDtCtYk3kIhcMInsKUpYvn9EOt2MCLvGr9NIOne1upDEJdkgeiOGzcKezVYi22t0T0gkuIc_LSWuUx6DSqdU";
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || "-VnRJa_ad3zm40zDk7EfT7wHZfWqmmVmW6GLMRFWCaw";
 const VAPID_EMAIL = process.env.VAPID_EMAIL || "mailto:adminsabilillah@gmail.com";
