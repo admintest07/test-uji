@@ -60,9 +60,9 @@ app.post('/api/send-push', async (req, res) => {
   const payload = JSON.stringify({
     title: title || 'Laporan Supervisi Masuk!',
     body: body || 'Ada data supervisi baru yang masuk ke sistem.',
-    icon: 'https://i.ibb.co/HTKMs1Q7/LPI-3-10-New.png',
-    badge: 'https://i.ibb.co/HTKMs1Q7/LPI-3-10-New.png',
-    vibrate: [250, 100, 250, 100, 250],
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    vibrate: [300, 100, 300, 100, 300],
     data: data || { url: '/' },
     tag: 'supervisi-' + (data?.id || Date.now()),
     renotify: true

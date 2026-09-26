@@ -8,10 +8,13 @@
     <meta name="apple-mobile-web-app-title" content="Supervisi LPI">
     <meta name="mobile-web-app-capable" content="yes">
     <title>Aplikasi Supervisi LPI Sabilillah Malang</title>
+    <meta name="description" content="Aplikasi Jurnal Supervisi Kebersihan, Kerapian dan Perawatan Sarpras LPI Sabilillah Malang dengan notifikasi realtime">
+    <meta property="og:title" content="Aplikasi Supervisi LPI Sabilillah Malang">
+    <meta property="og:description" content="Aplikasi Jurnal Supervisi Kebersihan, Kerapian dan Perawatan Sarpras LPI Sabilillah Malang dengan notifikasi realtime">
     <link id="pwa-manifest" rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="https://i.ibb.co/HTKMs1Q7/LPI-3-10-New.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="https://i.ibb.co/HTKMs1Q7/LPI-3-10-New.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="https://i.ibb.co/HTKMs1Q7/LPI-3-10-New.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <meta name="theme-color" content="#1d4ed8">
     
     <!-- Pustaka Eksternal (Fonts & Icons) -->
@@ -518,16 +521,105 @@
             </label>
         </div>
 
+        <!-- Status Instalasi PWA (WebAPK) -->
+        <div id="modal-pwa-status-box" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.85rem; padding: 0.85rem 1rem; margin-bottom: 1.25rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.4rem;">
+                <div style="font-size: 0.82rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 6px;">
+                    <i class="material-icons-round" style="font-size: 1.15rem; color: #2563eb;">install_mobile</i>
+                    Status Instalasi Aplikasi (PWA)
+                </div>
+                <span id="modal-pwa-installed-badge" style="font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; background: #fef3c7; color: #d97706;">Pintasan Browser</span>
+            </div>
+            <p id="modal-pwa-installed-desc" style="font-size: 0.74rem; color: #64748b; line-height: 1.4; margin-bottom: 0.6rem;">
+                Jika hanya ditambahkan sebagai pintasan (shortcut), Android/Chrome membatasi notifikasi saat aplikasi ditutup. Instal sebagai <strong>Aplikasi PWA Resmi</strong> agar notifikasi selalu aktif di atas status bar HP seperti WA/Email.
+            </p>
+            <div style="display: flex; gap: 0.5rem;">
+                <button id="btn-modal-install-pwa" onclick="window.triggerPWAInstall()" class="btn btn-primary" style="flex: 1; padding: 0.45rem 0.85rem; font-size: 0.8rem; font-weight: 700;">
+                    <i class="material-icons-round" style="font-size: 1rem;">download</i> Instal Aplikasi Sekarang
+                </button>
+                <button type="button" onclick="window.openPWAGuideModal()" class="btn btn-outline" style="padding: 0.45rem 0.75rem; font-size: 0.8rem; color: #475569;">
+                    <i class="material-icons-round" style="font-size: 1rem;">help_outline</i> Panduan
+                </button>
+            </div>
+        </div>
+
         <!-- Panduan PWA di HP -->
         <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 0.85rem; padding: 0.85rem; font-size: 0.75rem; color: #166534; line-height: 1.45;">
             <div style="font-weight: 800; display: flex; align-items: center; gap: 4px; margin-bottom: 4px; color: #15803d;">
                 <i class="material-icons-round" style="font-size: 1rem;">phonelink_ring</i> Notifikasi Saat Aplikasi Tidak Dibuka:
             </div>
             <ul style="margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 4px;">
-                <li><strong>Web Push Service:</strong> Aplikasi sudah dilengkapi Service Worker & Web Push Protocol sehingga notifikasi tetap diterima di pusat notifikasi HP meskipun aplikasi sedang ditutup.</li>
-                <li><strong>Android (Chrome/PWA):</strong> Pastikan izin <em>"Notifikasi"</em> disetel <strong>Izinkan</strong> dan hemat daya baterai di HP tidak membatasi aplikasi.</li>
-                <li><strong>iPhone (iOS 16.4+):</strong> Wajib menginstal PWA ke Layar Utama (Layar Depan) terlebih dahulu via Safari agar sistem iOS mengizinkan notifikasi latar belakang.</li>
+                <li><strong>Web Push Service:</strong> Menggunakan Web Push Protocol & Service Worker sehingga notifikasi tetap masuk ke pusat notifikasi HP meskipun aplikasi ditutup.</li>
+                <li><strong>Android (Chrome/WebAPK):</strong> Wajib diinstal sebagai <em>Aplikasi PWA</em> (bukan sekadar pintasan browser) dan izin <em>"Notifikasi"</em> disetel <strong>Izinkan</strong>.</li>
+                <li><strong>iPhone (iOS 16.4+):</strong> Wajib menginstal PWA ke Layar Utama melalui menu <em>Bagikan (Share) &rarr; Tambah ke Layar Utama</em> di Safari agar iOS mengizinkan notifikasi latar belakang.</li>
             </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Panduan Lengkap Instalasi PWA (Android & iOS) -->
+<div id="modal-pwa-guide" class="hidden" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); z-index: 1000002; display: flex; align-items: center; justify-content: center; padding: 1rem;">
+    <div class="modal-box" style="max-width: 480px; padding: 1.75rem 1.5rem; text-align: left; width: 100%; max-height: 90vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+                <div style="width: 38px; height: 38px; border-radius: 0.6rem; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                    <i class="material-icons-round" style="font-size: 1.35rem;">install_mobile</i>
+                </div>
+                <div>
+                    <h3 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 0;">Cara Instal Aplikasi (PWA)</h3>
+                    <p class="text-muted text-xs" style="margin: 0;">Bukan sekadar pintasan, instal aplikasi penuh di HP</p>
+                </div>
+            </div>
+            <button onclick="document.getElementById('modal-pwa-guide').classList.add('hidden')" style="border:none; background:transparent; cursor:pointer; color:#64748b; padding: 4px;"><i class="material-icons-round" style="font-size: 1.3rem;">close</i></button>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem; background: #f1f5f9; padding: 0.35rem; border-radius: 0.75rem; margin-bottom: 1.25rem;">
+            <button type="button" id="tab-guide-android" onclick="window.switchGuideTab('android')" class="btn" style="flex: 1; padding: 0.45rem; font-size: 0.8rem; font-weight: 700; border-radius: 0.5rem; background: white; color: #2563eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                Android (Chrome)
+            </button>
+            <button type="button" id="tab-guide-ios" onclick="window.switchGuideTab('ios')" class="btn" style="flex: 1; padding: 0.45rem; font-size: 0.8rem; font-weight: 700; border-radius: 0.5rem; background: transparent; color: #64748b;">
+                iPhone / iPad (Safari)
+            </button>
+        </div>
+
+        <!-- Panduan Android -->
+        <div id="guide-content-android" style="font-size: 0.82rem; color: #334155; line-height: 1.5;">
+            <div style="margin-bottom: 1rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 0.75rem; padding: 0.85rem;">
+                <div style="font-weight: 800; color: #1e40af; margin-bottom: 0.25rem;">Kenapa Harus "Instal Aplikasi", Bukan "Pintasan"?</div>
+                <div style="font-size: 0.75rem; color: #1e3a8a;">
+                    Jika hanya berupa <em>"Pintasan"</em> web biasa, Android menganggapnya sebagai tab Chrome biasa sehingga notifikasi diblokir saat layar HP mati. Dengan <strong>"Instal Aplikasi"</strong>, sistem Android membuat paket aplikasi terdaftar resmi (WebAPK) dengan izin notifikasi di pusat notifikasi HP seperti WA.
+                </div>
+            </div>
+            <ol style="padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.25rem;">
+                <li>Tekan tombol biru <strong>"⚡ Instal Aplikasi Sekarang"</strong> di bawah ini (jika muncul jendela konfirmasi Chrome, tekan <strong>"Instal"</strong>).</li>
+                <li>Jika tombol tidak merespons, ketuk menu <strong>titik tiga (⋮)</strong> di pojok kanan atas browser Google Chrome.</li>
+                <li>Cari dan pilih menu <strong>"Instal aplikasi"</strong> (atau <em>"Tambahkan ke Layar Utama"</em> berlogo download).</li>
+                <li>Tunggu beberapa detik sampai ikon aplikasi <strong>Supervisi LPI</strong> muncul di daftar semua aplikasi / layar HP Anda.</li>
+                <li>Buka aplikasi melalui ikon tersebut, login, dan ketuk <strong>"Izinkan"</strong> saat browser meminta izin notifikasi.</li>
+            </ol>
+            <button onclick="window.triggerPWAInstall()" class="btn btn-primary w-full" style="padding: 0.65rem; font-size: 0.85rem; font-weight: 700;">
+                ⚡ Mulai Instal Aplikasi Sekarang
+            </button>
+        </div>
+
+        <!-- Panduan iOS Safari -->
+        <div id="guide-content-ios" class="hidden" style="font-size: 0.82rem; color: #334155; line-height: 1.5;">
+            <div style="margin-bottom: 1rem; background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 0.75rem; padding: 0.85rem;">
+                <div style="font-weight: 800; color: #9d174d; margin-bottom: 0.25rem;">Persyaratan iPhone (iOS 16.4+)</div>
+                <div style="font-size: 0.75rem; color: #831843;">
+                    Apple Safari mewajibkan aplikasi disimpan ke Layar Utama (Home Screen) terlebih dahulu sebelum iOS mengizinkan notifikasi latar belakang.
+                </div>
+            </div>
+            <ol style="padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.25rem;">
+                <li>Buka web ini menggunakan browser bawaan <strong>Safari</strong> (bukan Chrome di iOS).</li>
+                <li>Ketuk ikon <strong>Bagikan (Share)</strong> <i class="material-icons-round" style="font-size: 1rem; vertical-align: middle; color: #0284c7;">ios_share</i> di bagian bawah layar Safari.</li>
+                <li>Gulir daftar menu ke bawah, lalu ketuk <strong>"Tambah ke Layar Utama"</strong> (<em>Add to Home Screen</em>).</li>
+                <li>Ketuk <strong>"Tambah"</strong> di pojok kanan atas.</li>
+                <li>Keluar dari Safari, lalu buka aplikasi dari <strong>Layar Utama iPhone Anda</strong>. Aktifkan izin notifikasi saat diminta.</li>
+            </ol>
+            <button onclick="document.getElementById('modal-pwa-guide').classList.add('hidden')" class="btn btn-outline w-full" style="padding: 0.65rem; font-size: 0.85rem;">
+                Saya Mengerti
+            </button>
         </div>
     </div>
 </div>
@@ -585,6 +677,20 @@
                 </div>
                 <button type="submit" class="btn btn-primary w-full" style="padding: 0.85rem; border-radius: 1rem; font-size: 1rem;">Login</button>
             </form>
+
+            <!-- Banner Instal PWA di Halaman Login -->
+            <div id="login-pwa-install-banner" class="hidden" style="margin-top: 1.25rem; padding: 0.85rem; border-radius: 0.85rem; background: #eff6ff; border: 1px solid #bfdbfe; text-align: center;">
+                <div style="font-size: 0.82rem; font-weight: 700; color: #1e40af; margin-bottom: 0.3rem; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                    <i class="material-icons-round" style="font-size: 1.15rem; color: #2563eb;">install_mobile</i>
+                    Instal Aplikasi di Layar HP
+                </div>
+                <div style="font-size: 0.73rem; color: #475569; margin-bottom: 0.6rem; line-height: 1.35;">
+                    Instal sebagai aplikasi resmi (PWA) agar notifikasi masuk ke status bar HP saat aplikasi ditutup.
+                </div>
+                <button type="button" onclick="window.triggerPWAInstall()" class="btn btn-primary w-full" style="padding: 0.55rem; font-size: 0.82rem; border-radius: 0.65rem; font-weight: 700;">
+                    ⚡ Instal Aplikasi Sekarang
+                </button>
+            </div>
         </div>
     </div>
     
@@ -630,10 +736,16 @@
                                 <div class="user-greeting-school" id="dash-satuan-pendidikan-header">-</div>
                             </div>
                         </div>
-                        <button id="btn-dash-notif" class="btn btn-icon flex-shrink-0" style="position: relative; color: white; background: rgba(255,255,255,0.2); border-radius: 0.5rem; width: 38px; height: 38px;" title="Pengaturan Notifikasi Realtime HP" onclick="window.openNotifModal()">
-                            <i class="material-icons-round">notifications_active</i>
-                            <span id="badge-notif-status" class="notif-bell-badge inactive"></span>
-                        </button>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <button id="btn-dash-pwa-install" class="btn hidden" style="color: white; background: rgba(255,255,255,0.22); border-radius: 0.5rem; padding: 0.45rem 0.75rem; font-size: 0.78rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;" title="Instal Aplikasi PWA ke HP" onclick="window.triggerPWAInstall()">
+                                <i class="material-icons-round" style="font-size: 1.1rem;">install_mobile</i>
+                                <span>Instal App</span>
+                            </button>
+                            <button id="btn-dash-notif" class="btn btn-icon flex-shrink-0" style="position: relative; color: white; background: rgba(255,255,255,0.2); border-radius: 0.5rem; width: 38px; height: 38px;" title="Pengaturan Notifikasi Realtime HP" onclick="window.openNotifModal()">
+                                <i class="material-icons-round">notifications_active</i>
+                                <span id="badge-notif-status" class="notif-bell-badge inactive"></span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -649,6 +761,29 @@
                         <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.3;">Data dapat Anda perbarui secara real-time kapan saja.</p>
                     </div>
                     <button class="btn w-full" style="background: linear-gradient(135deg, var(--accent), #f43f5e); color: white; border-radius: 0.75rem; padding: 0.75rem 1rem; font-size: 0.9rem; font-weight: 700; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.25);" onclick="navigate('rekap'); toggleInputSection(true);">+ Input Laporan Baru</button>
+                </div>
+            </div>
+
+            <!-- Banner Instal Aplikasi Resmi (PWA) di HP -->
+            <div id="dash-pwa-prompt" class="card hidden" style="margin-bottom: 1.25rem; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid #86efac; padding: 0.85rem 1rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 240px;">
+                        <div style="background: #16a34a; color: white; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 6px -1px rgba(22,163,74,0.3);">
+                            <i class="material-icons-round" style="font-size: 1.3rem;">install_mobile</i>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.88rem; font-weight: 800; color: #14532d;">Instal Aplikasi Resmi (PWA) di HP</div>
+                            <div style="font-size: 0.78rem; color: #15803d;">Bukan sekadar pintasan browser, instal aplikasi penuh agar notifikasi HP tetap aktif saat aplikasi ditutup.</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <button class="btn" onclick="window.triggerPWAInstall()" style="background: #15803d; color: white; padding: 0.45rem 0.95rem; font-size: 0.82rem; border-radius: 0.5rem; font-weight: 700;">
+                            ⚡ Instal Sekarang
+                        </button>
+                        <button class="btn btn-outline" onclick="window.dismissPWAPrompt()" style="padding: 0.45rem 0.65rem; font-size: 0.82rem; border-radius: 0.5rem; background: white; color: #64748b;">
+                            Nanti
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -1257,6 +1392,164 @@
     };
 
     // ==========================================
+    // PWA INSTALLATION CONTROLLER & LIFECYCLE
+    // ==========================================
+    let deferredInstallPrompt = null;
+    let pwaPromptDismissed = localStorage.getItem('supervisi_pwa_prompt_dismissed') === 'true';
+
+    window.checkIfInstalled = function() {
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                             Boolean(window.navigator.standalone) ||
+                             document.referrer.includes('android-app://');
+        return isStandalone;
+    };
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // Mencegah mini-infobar browser default agar aplikasi bisa menampilkan UI instalasi custom
+        e.preventDefault();
+        deferredInstallPrompt = e;
+        window.updatePWAInstallUI();
+        console.log('[PWA] beforeinstallprompt event captured and ready for custom prompt');
+    });
+
+    window.addEventListener('appinstalled', () => {
+        deferredInstallPrompt = null;
+        window.updatePWAInstallUI();
+        showToast('Aplikasi Supervisi LPIS berhasil terinstal di HP Anda!', 'success');
+        console.log('[PWA] Aplikasi berhasil terinstal sebagai WebAPK/PWA');
+    });
+
+    window.updatePWAInstallUI = function() {
+        const isInstalled = window.checkIfInstalled();
+        const loginBanner = document.getElementById('login-pwa-install-banner');
+        const dashBanner = document.getElementById('dash-pwa-prompt');
+        const dashBtn = document.getElementById('btn-dash-pwa-install');
+        const modalBadge = document.getElementById('modal-pwa-installed-badge');
+        const modalDesc = document.getElementById('modal-pwa-installed-desc');
+        const modalBtn = document.getElementById('btn-modal-install-pwa');
+
+        if (isInstalled) {
+            if (loginBanner) loginBanner.classList.add('hidden');
+            if (dashBanner) dashBanner.classList.add('hidden');
+            if (dashBtn) dashBtn.classList.add('hidden');
+            if (modalBadge) {
+                modalBadge.innerText = '✅ Terinstal PWA';
+                modalBadge.style.background = '#dcfce7';
+                modalBadge.style.color = '#15803d';
+            }
+            if (modalDesc) {
+                modalDesc.innerHTML = 'Aplikasi sudah berjalan sebagai <strong>Aplikasi PWA Penuh</strong>. Sistem HP mengizinkan notifikasi latar belakang saat aplikasi ditutup.';
+            }
+            if (modalBtn) {
+                modalBtn.className = 'btn btn-outline';
+                modalBtn.style.color = '#15803d';
+                modalBtn.style.borderColor = '#86efac';
+                modalBtn.innerHTML = '<i class="material-icons-round" style="font-size: 1rem;">check_circle</i> Aplikasi Sudah Terinstal';
+                modalBtn.onclick = () => showToast("Aplikasi sudah terinstal di HP Anda!", "info");
+            }
+        } else {
+            if (loginBanner) loginBanner.classList.remove('hidden');
+            if (dashBanner && !pwaPromptDismissed) dashBanner.classList.remove('hidden');
+            if (dashBtn) dashBtn.classList.remove('hidden');
+            if (modalBadge) {
+                modalBadge.innerText = '⚠️ Belum Diinstal PWA';
+                modalBadge.style.background = '#fef3c7';
+                modalBadge.style.color = '#d97706';
+            }
+            if (modalDesc) {
+                modalDesc.innerHTML = 'Jika hanya berupa pintasan biasa, notifikasi HP tidak muncul saat web ditutup. Instal sebagai <strong>Aplikasi PWA</strong> agar notifikasi selalu aktif di atas status bar HP seperti WA/Email.';
+            }
+            if (modalBtn) {
+                modalBtn.className = 'btn btn-primary';
+                modalBtn.innerHTML = '<i class="material-icons-round" style="font-size: 1rem;">download</i> Instal Aplikasi Sekarang';
+                modalBtn.onclick = window.triggerPWAInstall;
+            }
+        }
+    };
+
+    window.triggerPWAInstall = async function() {
+        if (window.checkIfInstalled()) {
+            showToast('Aplikasi sudah terinstal di HP Anda!', 'info');
+            return;
+        }
+
+        const isIOS = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+        if (isIOS) {
+            window.openPWAGuideModal('ios');
+            return;
+        }
+
+        if (deferredInstallPrompt) {
+            try {
+                await deferredInstallPrompt.prompt();
+                const choice = await deferredInstallPrompt.userChoice;
+                if (choice.outcome === 'accepted') {
+                    showToast('Memulai pemasangan aplikasi ke HP...', 'success');
+                    deferredInstallPrompt = null;
+                    window.updatePWAInstallUI();
+                } else {
+                    showToast('Pemasangan aplikasi dibatalkan', 'info');
+                }
+            } catch(e) {
+                console.warn('Install prompt error:', e);
+                window.openPWAGuideModal('android');
+            }
+        } else {
+            // Jika prompt native belum tersedia / browser desktop / menu manual
+            window.openPWAGuideModal('android');
+        }
+    };
+
+    window.openPWAGuideModal = function(defaultTab = 'android') {
+        const modal = document.getElementById('modal-pwa-guide');
+        if (!modal) return;
+        window.switchGuideTab(defaultTab);
+        modal.classList.remove('hidden');
+    };
+
+    window.switchGuideTab = function(tab) {
+        const tabAndroid = document.getElementById('tab-guide-android');
+        const tabIos = document.getElementById('tab-guide-ios');
+        const contentAndroid = document.getElementById('guide-content-android');
+        const contentIos = document.getElementById('guide-content-ios');
+
+        if (tab === 'android') {
+            if (tabAndroid) {
+                tabAndroid.style.background = 'white';
+                tabAndroid.style.color = '#2563eb';
+                tabAndroid.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
+            }
+            if (tabIos) {
+                tabIos.style.background = 'transparent';
+                tabIos.style.color = '#64748b';
+                tabIos.style.boxShadow = 'none';
+            }
+            if (contentAndroid) contentAndroid.classList.remove('hidden');
+            if (contentIos) contentIos.classList.add('hidden');
+        } else {
+            if (tabIos) {
+                tabIos.style.background = 'white';
+                tabIos.style.color = '#2563eb';
+                tabIos.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
+            }
+            if (tabAndroid) {
+                tabAndroid.style.background = 'transparent';
+                tabAndroid.style.color = '#64748b';
+                tabAndroid.style.boxShadow = 'none';
+            }
+            if (contentIos) contentIos.classList.remove('hidden');
+            if (contentAndroid) contentAndroid.classList.add('hidden');
+        }
+    };
+
+    window.dismissPWAPrompt = function() {
+        const dashBanner = document.getElementById('dash-pwa-prompt');
+        if (dashBanner) dashBanner.classList.add('hidden');
+        pwaPromptDismissed = true;
+        localStorage.setItem('supervisi_pwa_prompt_dismissed', 'true');
+    };
+
+    // ==========================================
     // NOTIFIKASI REALTIME & PWA NOTIFICATION API
     // ==========================================
 
@@ -1302,6 +1595,7 @@
     };
 
     const VAPID_PUBLIC_KEY = "BE3jDtCtYk3kIhcMInsKUpYvn9EOt2MCLvGr9NIOne1upDEJdkgeiOGzcKezVYi22t0T0gkuIc_LSWuUx6DSqdU";
+    window.currentPushSubscription = null;
 
     window.urlBase64ToUint8Array = function(base64String) {
         const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -1330,6 +1624,7 @@
             }
             if (subscription) {
                 const subData = JSON.parse(JSON.stringify(subscription));
+                window.currentPushSubscription = subData;
                 const subId = btoa(subscription.endpoint).slice(-32).replace(/[^a-zA-Z0-9]/g, '_');
                 
                 // 1. Kirim ke backend server endpoint
@@ -1350,8 +1645,8 @@
                         await setDoc(doc(db, "push_subscriptions", subId), {
                             subscription: subData,
                             endpoint: subscription.endpoint,
-                            userId: currentUser?.id || 'anonymous',
-                            userName: currentUser?.namaSupervisor || 'User',
+                            userId: currentUser?.id || currentUser?.username || 'anonymous',
+                            userName: currentUser?.namaSupervisor || currentUser?.username || 'User',
                             updatedAt: Date.now()
                         });
                     } catch(e) {
@@ -1379,7 +1674,17 @@
                     const sub = d.data().subscription;
                     if (sub && sub.endpoint) customSubscriptions.push(sub);
                 });
-            } catch(e) {}
+            } catch(e) {
+                console.warn("Firestore push subscription read:", e);
+            }
+        }
+
+        // Sertakan juga langganan perangkat ini jika ada
+        if (window.currentPushSubscription && window.currentPushSubscription.endpoint) {
+            const exists = customSubscriptions.some(s => s.endpoint === window.currentPushSubscription.endpoint);
+            if (!exists) {
+                customSubscriptions.push(window.currentPushSubscription);
+            }
         }
 
         try {
@@ -1442,6 +1747,8 @@
         const statusSub = document.getElementById('notif-status-sub');
         const btnReq = document.getElementById('btn-request-notif');
         const promptEl = document.getElementById('dash-notif-prompt');
+
+        window.updatePWAInstallUI();
 
         if (!('Notification' in window)) {
             if (badge) { badge.className = 'notif-bell-badge inactive'; badge.style.background = '#94a3b8'; }
@@ -1546,12 +1853,12 @@
         
         // 3. Notifikasi Sistem HP (Android/iOS PWA Banner bergulir seperti WA/Gmail)
         if ('Notification' in window && Notification.permission === 'granted') {
-            const iconUrl = 'https://i.ibb.co/HTKMs1Q7/LPI-3-10-New.png';
+            const iconUrl = '/icon-192.png';
             const notifOptions = {
                 body: notifBody,
                 icon: iconUrl,
                 badge: iconUrl,
-                vibrate: [250, 100, 250, 100, 250],
+                vibrate: [300, 100, 300, 100, 300],
                 tag: 'supervisi-' + (data.id || Date.now()),
                 renotify: true,
                 data: {
@@ -1577,6 +1884,16 @@
     };
 
     window.sendTestNotification = async function() {
+        if (Notification.permission !== 'granted') {
+            const perm = await window.requestNotificationPermission();
+            if (perm !== 'granted') {
+                showToast("Izin notifikasi belum diaktifkan!", "error");
+                return;
+            }
+        }
+
+        await window.subscribeToWebPush();
+
         const dummy = {
             id: "test-" + Date.now(),
             satuanPendidikan: currentUser?.satuanPendidikan || "SMA Islam Sabilillah",
@@ -1584,9 +1901,10 @@
             bulan: "Supervisi",
             detailPertemuan: [ { temuan: "Uji coba notifikasi latar belakang saat aplikasi ditutup" } ]
         };
+        
         window.sendRealtimeSupervisiNotification(dummy, true);
         await window.broadcastSupervisiPush(dummy);
-        showToast("Notifikasi dikirim ke pusat notifikasi HP!", "success");
+        showToast("Notifikasi dikirim! Coba kunci layar atau tutup aplikasi untuk tes notifikasi latar belakang.", "success");
     };
 
     window.openNotifModal = function() {
@@ -1853,6 +2171,8 @@
             loadDashboardData(); 
             window.initRealtimeSupervisiListener();
             window.updateNotifStatusUI();
+            window.updatePWAInstallUI();
+            window.subscribeToWebPush();
         });
     }
 
@@ -3329,6 +3649,7 @@
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('/sw.js').then((registration) => {
                 window.updateNotifStatusUI();
+                window.updatePWAInstallUI();
             }).catch(error => {
                 console.log('SW registration failed:', error.message || 'error');
             });
@@ -3348,7 +3669,10 @@
     }
 
     window.addEventListener('load', () => {
-        setTimeout(window.updateNotifStatusUI, 600);
+        setTimeout(() => {
+            window.updateNotifStatusUI();
+            window.updatePWAInstallUI();
+        }, 600);
     });
 </script>
 
