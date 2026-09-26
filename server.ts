@@ -44,6 +44,17 @@ app.get('/api/vapid-key', (_req, res) => {
   res.json({ publicKey: VAPID_PUBLIC_KEY });
 });
 
+app.get('/api/manifest', (_req, res) => {
+  res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+  res.sendFile(path.resolve(__dirname, 'public', 'manifest.json'));
+});
+
+app.get('/api/sw', (_req, res) => {
+  res.setHeader('Content-Type', 'text/javascript; charset=utf-8');
+  res.setHeader('Service-Worker-Allowed', '/');
+  res.sendFile(path.resolve(__dirname, 'public', 'sw.js'));
+});
+
 app.post('/api/subscribe', (req, res) => {
   const { subscription, user } = req.body;
   if (!subscription || !subscription.endpoint) {

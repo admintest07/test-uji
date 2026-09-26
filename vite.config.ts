@@ -5,6 +5,11 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
+    publicDir: 'public',
+    build: {
+      outDir: 'dist',
+      copyPublicDir: true,
+    },
     plugins: [
       react(),
       tailwindcss()
